@@ -1,0 +1,19 @@
+#!/bin/sh
+
+MPK_XOM_LIB="/root/xom/test/tools/speccpu_test/xom_test/libmpk_xom.so"
+
+if [ ! -f "$MPK_XOM_LIB" ]; then
+    echo "[xom-run] missing library: $MPK_XOM_LIB" >&2
+    exit 124
+fi
+
+export MPK_XOM_SCOPE="${MPK_XOM_SCOPE:-main}"
+export MPK_XOM_VERBOSE="${MPK_XOM_VERBOSE:-1}"
+
+if [ -n "${LD_PRELOAD:-}" ]; then
+    export LD_PRELOAD="$MPK_XOM_LIB:$LD_PRELOAD"
+else
+    export LD_PRELOAD="$MPK_XOM_LIB"
+fi
+
+exec "$@"

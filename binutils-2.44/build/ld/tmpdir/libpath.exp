@@ -1,0 +1,1 @@
+set libpath "/root/AsmXoM/binutils-2.44/build/x86_64-pc-linux-gnu/lib64 /root/AsmXoM/binutils-2.44/build/lib64 /usr/local/lib64 /lib64 /usr/lib64 /root/AsmXoM/binutils-2.44/build/x86_64-pc-linux-gnu/lib /root/AsmXoM/binutils-2.44/build/lib /usr/local/lib /lib /usr/lib"
