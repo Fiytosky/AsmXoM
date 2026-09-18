@@ -52,7 +52,7 @@ log_warn() {
     echo -e "${YELLOW}[Warning] $1${NC}"
 }
 
-# ================= 兼容性测试 =================
+# ================= Compatibility Test =================
 log_step "Prepare xom environment ..."
 cd "$BASE_ROOT/xom"
 gcc -O2 -g -fPIC -shared -Wall -Wextra -Werror -Wl,-soname,libmpk_xom.so -o libmpk_xom.so mpk_xom.c -ldl

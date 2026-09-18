@@ -54,7 +54,7 @@ log_warn() {
     echo -e "${YELLOW}[Warning] $1${NC}"
 }
 
-# ================= 代码泄露测试 =================
+# ================= Code Disclosure Test =================
 log_step "Simulate attack payload ..."
 cd "$BASE_ROOT/xom"
 gcc -O2 -g -fPIC -shared -Wall -Wextra -Werror -Wl,-soname,libmpk_xom.so -o libmpk_xom.so mpk_xom.c -ldl

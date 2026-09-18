@@ -52,7 +52,7 @@ log_warn() {
     echo -e "${YELLOW}[Warning] $1${NC}"
 }
 
-# ================= 嵌入数据识别 =================
+# ================= Embedded Data Identification =================
 log_step "Check openssl-3.3.5 ..."
 if [[ -d "openssl-3.3.5" ]]; then
     log_success "[+] Find openssl-3.3.5 in $PWD"
