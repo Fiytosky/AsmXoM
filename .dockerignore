@@ -1,0 +1,42 @@
+# Exclude everything by default, then admit only the distributable files used
+# by explicit COPY instructions in the Dockerfile.  This prevents the local
+# 10+ GiB GCC/workspace output from entering the Docker build context.
+*
+
+!Dockerfile
+!.dockerignore
+
+!binutils-2.44/
+!binutils-2.44/**
+binutils-2.44/build/
+binutils-2.44/build/**
+binutils-2.44/.docker-build/
+binutils-2.44/.docker-build/**
+
+!env.sh
+!LICENSE
+!README.md
+
+!evaluation/
+!evaluation/**
+evaluation/openssl-3.3.5/
+evaluation/openssl-3.3.5/**
+
+!gcc-wrapper/
+!gcc-wrapper/**
+gcc-wrapper/findasm.so
+
+!script/
+!script/**
+script/loc_stats.py
+script/requirements.txt
+script/run.sh
+
+!xom/
+!xom/**
+xom/*.so
+xom/probe
+
+!docker/
+!docker/**
+

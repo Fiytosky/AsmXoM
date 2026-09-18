@@ -2383,10 +2383,12 @@ obj_elf_size (int ignore ATTRIBUTE_UNUSED)
 
   /* fiytosky, add */
   if (dcollect || dsplit) {
-    if (is_in_func && cur_func_name &&
-        !strcmp(cur_func_name, name)) {
+    if (is_in_func && 
+        ((cur_func_name && !strcmp(cur_func_name, name)) || 
+         (alias_func_name && !strcmp(alias_func_name, name)))) {
       // End of function, reset the function marker.
       cur_func_name = NULL;
+      alias_func_name = NULL;
       is_in_func = false; 
     }
   }

@@ -21,6 +21,43 @@ AsmXoM is an enhanced compilation toolchain designed to enforce strict code–da
 - An x86-64 CPU supporting Intel Memory Protection Keys (MPK)
 - A minimum of 20 GB of available disk space for building GCC and GNU Binutils
 
+#### Docker
+
+The default image builds the modified Binutils 2.44, downloads and verifies
+GCC 15.2.0, builds GCC, and builds the GCC plugin and XoM support binaries
+during `docker build`.  It is therefore the appropriate image to distribute:
+
+```bash
+docker build --platform=linux/amd64 -t asmxom:15.2 .
+docker run --name asmxom -it asmxom:15.2
+```
+
+Pass `--build-arg ASMXOM_JOBS=N` to `docker build` to change the default four
+parallel jobs used for the GCC build.
+
+The container starts in `/AsmXoM` with `env.sh` already sourced.  Use a named
+container and restart it with `docker start -ai asmxom` to retain generated
+workspace data.
+
+To reproduce the alternative workflow where the toolchain is compiled only
+when a container starts, build the `runtime-build` target.  Its first start
+requires network access, at least 20 GB of free Docker storage, and may take a
+long time:
+
+```bash
+docker build --platform=linux/amd64 --target runtime-build \
+    -t asmxom:runtime-build .
+docker run --name asmxom-runtime -it \
+    -e ASMXOM_JOBS=4 asmxom:runtime-build
+```
+
+Export and import the ready-to-run image with:
+
+```bash
+docker save asmxom:15.2 | gzip > asmxom-15.2-linux-amd64.tar.gz
+gzip -dc asmxom-15.2-linux-amd64.tar.gz | docker load
+```
+
 #### Building AsmXoM Locally
 
 Compile binutils-2.44 and gcc-15.2.0 in your working directory (e.g., `Workplace`).
@@ -97,10 +134,10 @@ You can pass custom flags to the assembler invoked by GCC using the `-Wa` option
 
 ### How to Evaluation
 
-We provide the `script/build.sh` script to allow users to easily test AsmXoM's functionality and its XOM compatibility. The usage of the `build.sh` script is as follows:   
+We provide the `script/run.sh` script to allow users to easily test AsmXoM's functionality and its XOM compatibility. The usage of the `run.sh` script is as follows:   
 
 ```
-Usage: build.sh -p <target> [-j <jobs>] <-c | -b | -f | -s>
+Usage: run.sh -p <target> [-j <jobs>] <-c | -b | -f | -s>
 
 Options:
   -p <target>  Project name.
@@ -114,7 +151,7 @@ Options:
 Exactly one of -c, -b, -f, and -s must be specified.
 ```
 
-Before executing `build.sh`, please run `source env.sh` to initialize the environment.   
+Before executing `run.sh`, please run `source env.sh` to initialize the environment.   
 
 
 
@@ -125,7 +162,7 @@ Below, we use OpenSSL as an example to illustrate the testing process.
 Execute the following command:
 
 ```bash
-./build.sh -p openssl -f -j32
+./run.sh -p openssl -f -j32
 ```
 
 The main steps performed by this command are as follows:   
@@ -170,7 +207,7 @@ We enforce XoM protection on the program via Intel MPK, and compile and execute 
 Execute the following command:
 
 ```bash
-./build.sh -p openssl -s -j32
+./run.sh -p openssl -s -j32
 ```
 
 ##### Compilation and execution via AsmXoM
@@ -196,4 +233,3 @@ MPK_XOM_SCOPE=main MPK_XOM_VERBOSE=0 /Workplace/xom/xom_run ./openssl speed sha1
 # expected output (The coredump log records the embedded data access location.)
 Doing sha1 ops for 3s on 16 size blocks: Segmentation fault (core dumped)
 ```
-

@@ -579,7 +579,8 @@ colon (/* Just seen "x:" - rattle symbols & frags.  */
     if (frag_now_fix () > 0) {
       frag_wane (frag_now);
       frag_new (0);
-    } else if (frag_now_fix () == 0 && frag_now->frag_symbol != NULL) {
+    } else if (frag_now_fix () == 0 && frag_now->frag_symbol != NULL 
+               && bfd_is_local_label_name (stdoutput, fiy_test_symbol (frag_now->frag_symbol))) {
       // Find anchor symbols. (A single frag may be bound to multiple symbols.)
       frag_now->fr_flags.anchor_frag = 1;
       frag_now->frag_anchor = frag_now->frag_symbol;

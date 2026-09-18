@@ -13,6 +13,7 @@ segT xom_data_section;
 
 symbolS *text_cur_symbol;
 const char* cur_func_name;
+const char* alias_func_name;
 char *log_file;
 
 bool is_in_func;
@@ -60,6 +61,7 @@ log_file_init () {
 void datascope_init () {
 	text_cur_symbol = NULL;
 	cur_func_name = NULL;
+	alias_func_name = NULL;
 
 	is_in_func = false;
 	is_finish_subseg = false;
@@ -74,9 +76,6 @@ void datascope_init () {
 	idirect_data_num = 0; 
 	flash_symbol_point = false;
 
-	// 当前-g参数会导致subseg_new(XOM_DATA_SECTION)失败，当开启--dcollect时
-	// 禁止-g参数生效-->设置debug_type和dwarf_level为默认值
-	///FIXME: fix this bug
 	debug_type = DEBUG_UNSPECIFIED;
 	dwarf_level = 3;
 	
@@ -91,12 +90,20 @@ void update_cur_symbol (symbolS *sym) {
 	text_cur_symbol = sym;
 }
 
+void set_alias_func_name (const char *name) {
+	alias_func_name = name;
+}
+
 void update_frag_symbol (void) {
 	frag_now->frag_symbol = text_cur_symbol;
 }
 
 symbolS * get_cur_symbol (void) {
 	return text_cur_symbol;
+}
+
+const char* get_cur_func_name (void) {
+	return cur_func_name;
 }
 
 // metedata

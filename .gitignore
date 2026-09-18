@@ -1,2 +1,4 @@
 /gcc-15.2.0
 /workspace
+/binutils-2.44/build
+/tests

@@ -1,0 +1,714 @@
+	.file	"cipher_chacha20.c"
+	.text
+	.type	lh_MEM_hfn_thunk, @function
+lh_MEM_hfn_thunk:
+.LFB386:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	subq	$32, %rsp
+	movq	%rdi, -24(%rbp)
+	movq	%rsi, -32(%rbp)
+	movq	-32(%rbp), %rax
+	movq	%rax, -8(%rbp)
+	movq	-24(%rbp), %rax
+	movq	-8(%rbp), %rdx
+	movq	%rax, %rdi
+	call	*%rdx
+	leave
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE386:
+	.size	lh_MEM_hfn_thunk, .-lh_MEM_hfn_thunk
+	.type	lh_MEM_cfn_thunk, @function
+lh_MEM_cfn_thunk:
+.LFB387:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	subq	$48, %rsp
+	movq	%rdi, -24(%rbp)
+	movq	%rsi, -32(%rbp)
+	movq	%rdx, -40(%rbp)
+	movq	-40(%rbp), %rax
+	movq	%rax, -8(%rbp)
+	movq	-32(%rbp), %rdx
+	movq	-24(%rbp), %rax
+	movq	-8(%rbp), %rcx
+	movq	%rdx, %rsi
+	movq	%rax, %rdi
+	call	*%rcx
+	leave
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE387:
+	.size	lh_MEM_cfn_thunk, .-lh_MEM_cfn_thunk
+	.globl	ossl_chacha20_initctx
+	.type	ossl_chacha20_initctx, @function
+ossl_chacha20_initctx:
+.LFB402:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	subq	$16, %rsp
+	movq	%rdi, -8(%rbp)
+	movl	$256, %edi
+	call	ossl_prov_cipher_hw_chacha20@PLT
+	movq	%rax, %rdx
+	movq	-8(%rbp), %rax
+	pushq	$0
+	pushq	%rdx
+	movl	$2, %r9d
+	movl	$0, %r8d
+	movl	$128, %ecx
+	movl	$8, %edx
+	movl	$256, %esi
+	movq	%rax, %rdi
+	call	ossl_cipher_generic_initkey@PLT
+	addq	$16, %rsp
+	nop
+	leave
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE402:
+	.size	ossl_chacha20_initctx, .-ossl_chacha20_initctx
+	.section	.rodata
+	.align 8
+.LC0:
+	.string	"../providers/implementations/ciphers/cipher_chacha20.c"
+	.text
+	.type	chacha20_newctx, @function
+chacha20_newctx:
+.LFB403:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	subq	$32, %rsp
+	movq	%rdi, -24(%rbp)
+	call	ossl_prov_is_running@PLT
+	testl	%eax, %eax
+	jne	.L7
+	movl	$0, %eax
+	jmp	.L8
+.L7:
+	leaq	.LC0(%rip), %rax
+	movl	$52, %edx
+	movq	%rax, %rsi
+	movl	$312, %edi
+	call	CRYPTO_zalloc@PLT
+	movq	%rax, -8(%rbp)
+	cmpq	$0, -8(%rbp)
+	je	.L9
+	movq	-8(%rbp), %rax
+	movq	%rax, %rdi
+	call	ossl_chacha20_initctx@PLT
+.L9:
+	movq	-8(%rbp), %rax
+.L8:
+	leave
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE403:
+	.size	chacha20_newctx, .-chacha20_newctx
+	.type	chacha20_freectx, @function
+chacha20_freectx:
+.LFB404:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	subq	$32, %rsp
+	movq	%rdi, -24(%rbp)
+	movq	-24(%rbp), %rax
+	movq	%rax, -8(%rbp)
+	cmpq	$0, -8(%rbp)
+	je	.L12
+	movq	-24(%rbp), %rax
+	movq	%rax, %rdi
+	call	ossl_cipher_generic_reset_ctx@PLT
+	leaq	.LC0(%rip), %rdx
+	movq	-8(%rbp), %rax
+	movl	$64, %ecx
+	movl	$312, %esi
+	movq	%rax, %rdi
+	call	CRYPTO_clear_free@PLT
+.L12:
+	nop
+	leave
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE404:
+	.size	chacha20_freectx, .-chacha20_freectx
+	.type	chacha20_dupctx, @function
+chacha20_dupctx:
+.LFB405:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	subq	$32, %rsp
+	movq	%rdi, -24(%rbp)
+	movq	-24(%rbp), %rax
+	movq	%rax, -16(%rbp)
+	movq	$0, -8(%rbp)
+	cmpq	$0, -16(%rbp)
+	je	.L14
+	leaq	.LC0(%rip), %rdx
+	movq	-16(%rbp), %rax
+	movl	$74, %ecx
+	movl	$312, %esi
+	movq	%rax, %rdi
+	call	CRYPTO_memdup@PLT
+	movq	%rax, -8(%rbp)
+	cmpq	$0, -8(%rbp)
+	je	.L14
+	movq	-8(%rbp), %rax
+	movq	120(%rax), %rax
+	testq	%rax, %rax
+	je	.L14
+	movq	-8(%rbp), %rax
+	movl	128(%rax), %eax
+	testl	%eax, %eax
+	je	.L14
+	movq	-8(%rbp), %rax
+	movq	136(%rax), %rsi
+	movq	-8(%rbp), %rax
+	movq	120(%rax), %rax
+	leaq	.LC0(%rip), %rdx
+	movl	$76, %ecx
+	movq	%rax, %rdi
+	call	CRYPTO_memdup@PLT
+	movq	-8(%rbp), %rdx
+	movq	%rax, 120(%rdx)
+	movq	-8(%rbp), %rax
+	movq	120(%rax), %rax
+	testq	%rax, %rax
+	jne	.L14
+	leaq	.LC0(%rip), %rcx
+	movq	-8(%rbp), %rax
+	movl	$79, %edx
+	movq	%rcx, %rsi
+	movq	%rax, %rdi
+	call	CRYPTO_free@PLT
+	movq	$0, -8(%rbp)
+.L14:
+	movq	-8(%rbp), %rax
+	leave
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE405:
+	.size	chacha20_dupctx, .-chacha20_dupctx
+	.type	chacha20_get_params, @function
+chacha20_get_params:
+.LFB406:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	subq	$16, %rsp
+	movq	%rdi, -8(%rbp)
+	movq	-8(%rbp), %rax
+	movl	$128, %r9d
+	movl	$8, %r8d
+	movl	$256, %ecx
+	movl	$2, %edx
+	movl	$0, %esi
+	movq	%rax, %rdi
+	call	ossl_cipher_generic_get_params@PLT
+	leave
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE406:
+	.size	chacha20_get_params, .-chacha20_get_params
+	.section	.rodata
+.LC1:
+	.string	"ivlen"
+.LC2:
+	.string	"keylen"
+	.text
+	.type	chacha20_get_ctx_params, @function
+chacha20_get_ctx_params:
+.LFB407:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	subq	$32, %rsp
+	movq	%rdi, -24(%rbp)
+	movq	%rsi, -32(%rbp)
+	leaq	.LC1(%rip), %rdx
+	movq	-32(%rbp), %rax
+	movq	%rdx, %rsi
+	movq	%rax, %rdi
+	call	OSSL_PARAM_locate@PLT
+	movq	%rax, -8(%rbp)
+	cmpq	$0, -8(%rbp)
+	je	.L19
+	movq	-8(%rbp), %rax
+	movl	$16, %esi
+	movq	%rax, %rdi
+	call	OSSL_PARAM_set_size_t@PLT
+	testl	%eax, %eax
+	jne	.L19
+	call	ERR_new@PLT
+	leaq	__func__.1(%rip), %rdx
+	leaq	.LC0(%rip), %rax
+	movl	$101, %esi
+	movq	%rax, %rdi
+	call	ERR_set_debug@PLT
+	movl	$0, %edx
+	movl	$104, %esi
+	movl	$57, %edi
+	movl	$0, %eax
+	call	ERR_set_error@PLT
+	movl	$0, %eax
+	jmp	.L20
+.L19:
+	leaq	.LC2(%rip), %rdx
+	movq	-32(%rbp), %rax
+	movq	%rdx, %rsi
+	movq	%rax, %rdi
+	call	OSSL_PARAM_locate@PLT
+	movq	%rax, -8(%rbp)
+	cmpq	$0, -8(%rbp)
+	je	.L21
+	movq	-8(%rbp), %rax
+	movl	$32, %esi
+	movq	%rax, %rdi
+	call	OSSL_PARAM_set_size_t@PLT
+	testl	%eax, %eax
+	jne	.L21
+	call	ERR_new@PLT
+	leaq	__func__.1(%rip), %rdx
+	leaq	.LC0(%rip), %rax
+	movl	$106, %esi
+	movq	%rax, %rdi
+	call	ERR_set_debug@PLT
+	movl	$0, %edx
+	movl	$104, %esi
+	movl	$57, %edi
+	movl	$0, %eax
+	call	ERR_set_error@PLT
+	movl	$0, %eax
+	jmp	.L20
+.L21:
+	movl	$1, %eax
+.L20:
+	leave
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE407:
+	.size	chacha20_get_ctx_params, .-chacha20_get_ctx_params
+	.section	.data.rel.ro.local,"aw"
+	.align 32
+	.type	chacha20_known_gettable_ctx_params, @object
+	.size	chacha20_known_gettable_ctx_params, 120
+chacha20_known_gettable_ctx_params:
+	.quad	.LC2
+	.long	2
+	.zero	4
+	.quad	0
+	.quad	8
+	.quad	-1
+	.quad	.LC1
+	.long	2
+	.zero	4
+	.quad	0
+	.quad	8
+	.quad	-1
+	.quad	0
+	.long	0
+	.zero	4
+	.quad	0
+	.quad	0
+	.quad	0
+	.text
+	.type	chacha20_gettable_ctx_params, @function
+chacha20_gettable_ctx_params:
+.LFB408:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	movq	%rdi, -8(%rbp)
+	movq	%rsi, -16(%rbp)
+	leaq	chacha20_known_gettable_ctx_params(%rip), %rax
+	popq	%rbp
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE408:
+	.size	chacha20_gettable_ctx_params, .-chacha20_gettable_ctx_params
+	.type	chacha20_set_ctx_params, @function
+chacha20_set_ctx_params:
+.LFB409:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	subq	$32, %rsp
+	movq	%rdi, -24(%rbp)
+	movq	%rsi, -32(%rbp)
+	cmpq	$0, -32(%rbp)
+	jne	.L25
+	movl	$1, %eax
+	jmp	.L31
+.L25:
+	leaq	.LC2(%rip), %rdx
+	movq	-32(%rbp), %rax
+	movq	%rdx, %rsi
+	movq	%rax, %rdi
+	call	OSSL_PARAM_locate_const@PLT
+	movq	%rax, -8(%rbp)
+	cmpq	$0, -8(%rbp)
+	je	.L27
+	leaq	-16(%rbp), %rdx
+	movq	-8(%rbp), %rax
+	movq	%rdx, %rsi
+	movq	%rax, %rdi
+	call	OSSL_PARAM_get_size_t@PLT
+	testl	%eax, %eax
+	jne	.L28
+	call	ERR_new@PLT
+	leaq	__func__.0(%rip), %rdx
+	leaq	.LC0(%rip), %rax
+	movl	$135, %esi
+	movq	%rax, %rdi
+	call	ERR_set_debug@PLT
+	movl	$0, %edx
+	movl	$103, %esi
+	movl	$57, %edi
+	movl	$0, %eax
+	call	ERR_set_error@PLT
+	movl	$0, %eax
+	jmp	.L31
+.L28:
+	movq	-16(%rbp), %rax
+	cmpq	$32, %rax
+	je	.L27
+	call	ERR_new@PLT
+	leaq	__func__.0(%rip), %rdx
+	leaq	.LC0(%rip), %rax
+	movl	$139, %esi
+	movq	%rax, %rdi
+	call	ERR_set_debug@PLT
+	movl	$0, %edx
+	movl	$105, %esi
+	movl	$57, %edi
+	movl	$0, %eax
+	call	ERR_set_error@PLT
+	movl	$0, %eax
+	jmp	.L31
+.L27:
+	leaq	.LC1(%rip), %rdx
+	movq	-32(%rbp), %rax
+	movq	%rdx, %rsi
+	movq	%rax, %rdi
+	call	OSSL_PARAM_locate_const@PLT
+	movq	%rax, -8(%rbp)
+	cmpq	$0, -8(%rbp)
+	je	.L29
+	leaq	-16(%rbp), %rdx
+	movq	-8(%rbp), %rax
+	movq	%rdx, %rsi
+	movq	%rax, %rdi
+	call	OSSL_PARAM_get_size_t@PLT
+	testl	%eax, %eax
+	jne	.L30
+	call	ERR_new@PLT
+	leaq	__func__.0(%rip), %rdx
+	leaq	.LC0(%rip), %rax
+	movl	$146, %esi
+	movq	%rax, %rdi
+	call	ERR_set_debug@PLT
+	movl	$0, %edx
+	movl	$103, %esi
+	movl	$57, %edi
+	movl	$0, %eax
+	call	ERR_set_error@PLT
+	movl	$0, %eax
+	jmp	.L31
+.L30:
+	movq	-16(%rbp), %rax
+	cmpq	$16, %rax
+	je	.L29
+	call	ERR_new@PLT
+	leaq	__func__.0(%rip), %rdx
+	leaq	.LC0(%rip), %rax
+	movl	$150, %esi
+	movq	%rax, %rdi
+	call	ERR_set_debug@PLT
+	movl	$0, %edx
+	movl	$109, %esi
+	movl	$57, %edi
+	movl	$0, %eax
+	call	ERR_set_error@PLT
+	movl	$0, %eax
+	jmp	.L31
+.L29:
+	movl	$1, %eax
+.L31:
+	leave
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE409:
+	.size	chacha20_set_ctx_params, .-chacha20_set_ctx_params
+	.section	.data.rel.ro.local
+	.align 32
+	.type	chacha20_known_settable_ctx_params, @object
+	.size	chacha20_known_settable_ctx_params, 120
+chacha20_known_settable_ctx_params:
+	.quad	.LC2
+	.long	2
+	.zero	4
+	.quad	0
+	.quad	8
+	.quad	-1
+	.quad	.LC1
+	.long	2
+	.zero	4
+	.quad	0
+	.quad	8
+	.quad	-1
+	.quad	0
+	.long	0
+	.zero	4
+	.quad	0
+	.quad	0
+	.quad	0
+	.text
+	.type	chacha20_settable_ctx_params, @function
+chacha20_settable_ctx_params:
+.LFB410:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	movq	%rdi, -8(%rbp)
+	movq	%rsi, -16(%rbp)
+	leaq	chacha20_known_settable_ctx_params(%rip), %rax
+	popq	%rbp
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE410:
+	.size	chacha20_settable_ctx_params, .-chacha20_settable_ctx_params
+	.globl	ossl_chacha20_einit
+	.type	ossl_chacha20_einit, @function
+ossl_chacha20_einit:
+.LFB411:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	subq	$80, %rsp
+	movq	%rdi, -40(%rbp)
+	movq	%rsi, -48(%rbp)
+	movq	%rdx, -56(%rbp)
+	movq	%rcx, -64(%rbp)
+	movq	%r8, -72(%rbp)
+	movq	%r9, -80(%rbp)
+	movq	-72(%rbp), %rdi
+	movq	-64(%rbp), %rcx
+	movq	-56(%rbp), %rdx
+	movq	-48(%rbp), %rsi
+	movq	-40(%rbp), %rax
+	movl	$0, %r9d
+	movq	%rdi, %r8
+	movq	%rax, %rdi
+	call	ossl_cipher_generic_einit@PLT
+	movl	%eax, -4(%rbp)
+	cmpl	$0, -4(%rbp)
+	je	.L35
+	cmpq	$0, -64(%rbp)
+	je	.L35
+	movq	-40(%rbp), %rax
+	movq	%rax, -16(%rbp)
+	movq	-16(%rbp), %rax
+	movq	168(%rax), %rax
+	movq	%rax, -24(%rbp)
+	movq	-24(%rbp), %rax
+	movq	24(%rax), %rdx
+	movq	-16(%rbp), %rax
+	movq	%rax, %rdi
+	call	*%rdx
+.L35:
+	cmpl	$0, -4(%rbp)
+	je	.L36
+	movq	-80(%rbp), %rdx
+	movq	-40(%rbp), %rax
+	movq	%rdx, %rsi
+	movq	%rax, %rdi
+	call	chacha20_set_ctx_params
+	testl	%eax, %eax
+	jne	.L36
+	movl	$0, -4(%rbp)
+.L36:
+	movl	-4(%rbp), %eax
+	leave
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE411:
+	.size	ossl_chacha20_einit, .-ossl_chacha20_einit
+	.globl	ossl_chacha20_dinit
+	.type	ossl_chacha20_dinit, @function
+ossl_chacha20_dinit:
+.LFB412:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	subq	$80, %rsp
+	movq	%rdi, -40(%rbp)
+	movq	%rsi, -48(%rbp)
+	movq	%rdx, -56(%rbp)
+	movq	%rcx, -64(%rbp)
+	movq	%r8, -72(%rbp)
+	movq	%r9, -80(%rbp)
+	movq	-72(%rbp), %rdi
+	movq	-64(%rbp), %rcx
+	movq	-56(%rbp), %rdx
+	movq	-48(%rbp), %rsi
+	movq	-40(%rbp), %rax
+	movl	$0, %r9d
+	movq	%rdi, %r8
+	movq	%rax, %rdi
+	call	ossl_cipher_generic_dinit@PLT
+	movl	%eax, -4(%rbp)
+	cmpl	$0, -4(%rbp)
+	je	.L39
+	cmpq	$0, -64(%rbp)
+	je	.L39
+	movq	-40(%rbp), %rax
+	movq	%rax, -16(%rbp)
+	movq	-16(%rbp), %rax
+	movq	168(%rax), %rax
+	movq	%rax, -24(%rbp)
+	movq	-24(%rbp), %rax
+	movq	24(%rax), %rdx
+	movq	-16(%rbp), %rax
+	movq	%rax, %rdi
+	call	*%rdx
+.L39:
+	cmpl	$0, -4(%rbp)
+	je	.L40
+	movq	-80(%rbp), %rdx
+	movq	-40(%rbp), %rax
+	movq	%rdx, %rsi
+	movq	%rax, %rdi
+	call	chacha20_set_ctx_params
+	testl	%eax, %eax
+	jne	.L40
+	movl	$0, -4(%rbp)
+.L40:
+	movl	-4(%rbp), %eax
+	leave
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE412:
+	.size	ossl_chacha20_dinit, .-ossl_chacha20_dinit
+	.globl	ossl_chacha20_functions
+	.section	.data.rel.ro,"aw"
+	.align 32
+	.type	ossl_chacha20_functions, @object
+	.size	ossl_chacha20_functions, 240
+ossl_chacha20_functions:
+	.long	1
+	.zero	4
+	.quad	chacha20_newctx
+	.long	7
+	.zero	4
+	.quad	chacha20_freectx
+	.long	8
+	.zero	4
+	.quad	chacha20_dupctx
+	.long	2
+	.zero	4
+	.quad	ossl_chacha20_einit
+	.long	3
+	.zero	4
+	.quad	ossl_chacha20_dinit
+	.long	4
+	.zero	4
+	.quad	ossl_cipher_generic_stream_update
+	.long	5
+	.zero	4
+	.quad	ossl_cipher_generic_stream_final
+	.long	6
+	.zero	4
+	.quad	ossl_cipher_generic_cipher
+	.long	9
+	.zero	4
+	.quad	chacha20_get_params
+	.long	12
+	.zero	4
+	.quad	ossl_cipher_generic_gettable_params
+	.long	10
+	.zero	4
+	.quad	chacha20_get_ctx_params
+	.long	13
+	.zero	4
+	.quad	chacha20_gettable_ctx_params
+	.long	11
+	.zero	4
+	.quad	chacha20_set_ctx_params
+	.long	14
+	.zero	4
+	.quad	chacha20_settable_ctx_params
+	.long	0
+	.zero	4
+	.quad	0
+	.section	.rodata
+	.align 16
+	.type	__func__.1, @object
+	.size	__func__.1, 24
+__func__.1:
+	.string	"chacha20_get_ctx_params"
+	.align 16
+	.type	__func__.0, @object
+	.size	__func__.0, 24
+__func__.0:
+	.string	"chacha20_set_ctx_params"
+	.ident	"GCC: (GNU) 15.2.0"
+	.section	.note.GNU-stack,"",@progbits

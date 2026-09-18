@@ -2279,6 +2279,8 @@ static void parse_frags_for_test (void) {
 				}
 				if (sym) {
 					const char* sym_name = fiy_test_symbol (sym);
+					f->fr_flags.data_frag = 1;
+					f->fr_flags.unknown_frag = 0;
 					as_datascope (_("frag_name: %s, frag_address: 0x%lx, frag_size: 0x%lx, frag_index: %lu"),
 									sym_name, f->fr_address, offset, f->frag_index);
 					
@@ -2311,6 +2313,8 @@ static void parse_frags_for_test (void) {
 
 					write_metedata_for_test (&data, sym_name);
 				} else {
+					f->fr_flags.data_frag = 1;
+					f->fr_flags.unknown_frag = 0;
 					as_datascope (_("frag_name: null, frag_address: 0x%lx, frag_size: 0x%lx, frag_index: %lu"),
 									f->fr_address, offset, f->frag_index);
 
@@ -2391,11 +2395,12 @@ static void split_text_frags (void) {
 		symbolS *sym = curr_frag->frag_symbol;
 
 		// Migrate the alignment attributes to the .xom_data section as well.
+		// The frags may have such a layout: align_frag | anchor_frag | data_frag/insn_frag 
 		if (curr_frag->fr_flags.align_frag == 1) {
 			offset = next_frag->fr_fix;
 			sym = next_frag->frag_symbol;
 			if (next_frag != NULL && !next_frag->fr_flags.insn_frag && !next_frag->fr_flags.align_frag) {
-				if (offset > 0 && !S_IS_CF_SYMBOL (sym)) {
+				if (offset > 0 && !S_IS_CF_SYMBOL (sym) && next_frag->frag_has_hardcode) {
 					need_split = true;
 				}
 			}
@@ -2421,6 +2426,9 @@ static void split_text_frags (void) {
 				xom_chain->frch_last = next_frag;
 
 				if (sym) {
+					if (next_frag->frag_anchor) {
+						S_SET_SEGMENT(next_frag->frag_anchor, xom_section);
+					}
 					S_SET_SEGMENT(sym, xom_section);
 					as_datascope (_("frag_name: %s, frag_index: %lu, frag_size: 0x%lx, DO Split Align"),
 										fiy_test_symbol (sym), curr_frag->frag_index, curr_frag->fr_fix);
@@ -2441,8 +2449,9 @@ static void split_text_frags (void) {
 			continue;
 		}
 
-		if (!curr_frag->fr_flags.insn_frag) {
-			if (offset && !S_IS_CF_SYMBOL (sym)) {
+		// if (!curr_frag->fr_flags.insn_frag) {
+		if (curr_frag->fr_flags.data_frag) {
+			if (offset && !S_IS_CF_SYMBOL (sym) && curr_frag->frag_has_hardcode) {
 				if (curr_frag->fr_flags.anchor_frag) {
 					// Anchor frags have zero size, but act as placeholders.
 					gas_assert (sym);
@@ -2453,6 +2462,7 @@ static void split_text_frags (void) {
 									anchor_name, curr_frag->frag_index);
 
 					need_split = true;
+					S_SET_SEGMENT(curr_frag->frag_anchor, xom_section);
 				}
 				if (sym) {
 					const char* sym_name = fiy_test_symbol (sym);
@@ -2530,6 +2540,32 @@ static void split_text_frags (void) {
     }
 }
 
+
+static const char* strInsn = "insn_frag";
+static const char* strData = "data_frag";
+static const char* strAlign = "align_frag";
+static const char* strAnchor = "anchor_frag";
+static const char* strMixd = "mixd_frag";
+static const char* strUnknown = "unknown_frag";
+
+static const char* get_frag_type (fragS *f) {
+	if (f->fr_flags.insn_frag) {
+		return strInsn;
+	} else if (f->fr_flags.data_frag) {
+		if (f->fr_flags.anchor_frag) {
+			return strAnchor;
+		} else {
+			return strData;
+		}
+	} else if (f->fr_flags.align_frag) {
+		return strAlign;
+	} else if (f->fr_flags.mixd_frag) {
+		return strMixd;
+	} else {
+		return strUnknown;
+	}
+}
+
 static void dump_text_frags (int i) {
 	if (i == 0) {
 		as_datascope (_("========================== Text fargs info before relax =========================="));
@@ -2551,9 +2587,9 @@ static void dump_text_frags (int i) {
 		symbolS *sym = f->frag_symbol;
 		if (sym) {
 			const char* sym_name = fiy_test_symbol (sym);
-			as_datascope (_("frag_name: %s, frag_index: %lu, frag_address: %lx"), sym_name, f->frag_index, f->fr_address);
+			as_datascope (_("frag_name: %s, frag_index: %lu, frag_address: %lx, frag_type: %s"), sym_name, f->frag_index, f->fr_address, get_frag_type (f));
 		} else {
-			as_datascope (_("frag_name: %s, frag_index: %lu, frag_address: %lx"), "null", f->frag_index, f->fr_address);
+			as_datascope (_("frag_name: %s, frag_index: %lu, frag_address: %lx, frag_type: %s"), "null", f->frag_index, f->fr_address, get_frag_type (f));
 		}
 	}
 }
@@ -2565,15 +2601,18 @@ static void try_disasm_unknown_frag (void) {
 	f = info->frchainP->frch_root;
 
 	for (; f != NULL; f = f->fr_next) {
-		if (f->fr_flags.unknown_frag) {
+		// if (f->fr_flags.unknown_frag) {
+		if (f->frag_has_hardcode && f->fr_flags.unknown_frag) {
 			as_datascope (_("Try disasm frag_index: %lu, is_unknown: true"),f->frag_index);
 			i386_classify_hardcoded_frag (f);
 
 			if (f->tc_frag_data.byte_kind == I386_FRAG_BYTES_INSN) {
 				f->fr_flags.insn_frag = 1;
+				f->fr_flags.unknown_frag = 0;
 				as_datascope (_("Done disasm frag_index: %lu, find insn_frag"),f->frag_index);
 			} else if (f->tc_frag_data.byte_kind == I386_FRAG_BYTES_MIXED) {
 				f->fr_flags.mixd_frag = 1;
+				f->fr_flags.unknown_frag = 0;
 				as_datascope (_("Done disasm frag_index: %lu, find mixd_frag"),f->frag_index);
 			}
 		}
@@ -2588,7 +2627,8 @@ static bool all_frags_has_checked (void) {
 
 	bool can_do_split = true;
 	for (; f != NULL; f = f->fr_next) {
-		if (f->fr_flags.mixd_frag || f->fr_flags.unknown_frag) {
+		// if (f->fr_flags.mixd_frag || f->fr_flags.unknown_frag) {
+		if (f->frag_has_hardcode && (f->fr_flags.mixd_frag || f->fr_flags.unknown_frag)) {
 			can_do_split = false;
 			as_datascope (_("Found mixd_frag or unknown_frag, aborting separation. frag_index: %lu"),f->frag_index);
 			break;
@@ -2655,6 +2695,7 @@ write_object_file (void)
 
   if (dcollect || dsplit) {
 	parse_frags_for_test ();
+	// dump_text_frags (0);
   }
 
   // ! Ensure code and data are separated before running the relaxation pass.

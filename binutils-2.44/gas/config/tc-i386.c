@@ -7728,6 +7728,20 @@ i386_assemble (char *line)
 
   establish_rex ();
 
+  if ((dcollect || dsplit) && i.tm.mnem_off == MN_ret)
+  {
+    const char *func_name = get_cur_func_name ();
+
+    if (func_name)
+      as_datascope (_("encountered ret instruction `%s' in function `%s'"),
+                    insn_name (&i.tm), func_name);
+    else
+      as_datascope (_("encountered ret instruction `%s'"),
+                    insn_name (&i.tm));
+
+    is_in_func = false;
+  }
+
   insert_lfence_before (last_insn);
 
   /* We are ready to output the insn.  */
@@ -12680,8 +12694,10 @@ output_insn (const struct last_insn *last_insn)
                frag_tmp && frag_tmp != frag_now;
                frag_tmp = frag_tmp->fr_next) {
             frag_tmp->fr_flags.insn_frag = 1;
+            frag_tmp->fr_flags.unknown_frag = 0;
           }
           frag_now->fr_flags.insn_frag = 1;
+          frag_now->fr_flags.unknown_frag = 0;
         }
 	    }
 	  else
@@ -13029,8 +13045,10 @@ output_insn (const struct last_insn *last_insn)
           frag_tmp && frag_tmp != frag_now;
           frag_tmp = frag_tmp->fr_next) {
       frag_tmp->fr_flags.insn_frag = 1;
+      frag_tmp->fr_flags.unknown_frag = 0;
     }
     frag_now->fr_flags.insn_frag = 1;
+    frag_now->fr_flags.unknown_frag = 0;
   }
 }
 

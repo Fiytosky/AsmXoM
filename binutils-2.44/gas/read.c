@@ -848,20 +848,21 @@ do_align (unsigned int n, char *fill, unsigned int len, unsigned int max)
 #endif
 
   // fiytosky, add
-  // align的处理模型为，在当前frag之后填充对齐字节，填充完后开启新frag
-  // 将align与其他frag分开
+  // The processing model for align is to pad alignment bytes after the current frag,
+  // and start a new frag once the padding is complete.
+  // This separates the align from other frags.
   if ((dcollect || dsplit) && now_seg == text_section) {
     if (frag_now->fr_var > 0 && frag_now->fr_type == rs_machine_dependent) {
       as_warn ("Before split align frag, frag_now has fr_var with fr_type rs_machine_dependent");
     }
 
-    ///TODO: 替换为frag_now_fix_octets ()
     if (frag_now_fix () > 0) {
       // as_warn ("Before split align frag, frag_now is filled by some bytes");
       frag_wane (frag_now);
       frag_new (0);
     }
     frag_now->fr_flags.align_frag = 1;
+    frag_now->fr_flags.unknown_frag = 0;
   }
 
 #ifdef md_do_align
@@ -3921,8 +3922,8 @@ s_weakref (int ignore ATTRIBUTE_UNUSED)
   expressionS exp;
 
   // fiytosky, add
-  // .weakref会干扰数据指针的分析
-  ///TODO: 先告警，以后再处理
+  // .weakref will interfere with the analysis of data pointers
+  ///TODO: Issue a warning for now, and handle it later
   if (dcollect || dsplit) {
     as_warn (_("Find .weakref symbol"));
   }

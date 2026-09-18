@@ -21,31 +21,32 @@
 #ifndef FRAGS_H
 #define FRAGS_H
 
-// fiytosky, add. 详细标注frag的类型
+// fiytosky, add. Detailed annotation of the frag type
 struct frag_flags {
-  // 该frag是否为frag_chain的第一个frag
+  // Whether this frag is the first frag in the frag_chain
   unsigned int first_frag : 1;
 
-  // 该frag是否为写入指令的frag
+  // Whether this frag is an instruction frag
   unsigned int insn_frag : 1;
 
-  // 该frag是否为数据frag
+  // Whether this frag is a data frag
   unsigned int data_frag : 1;
 
-  // 该frag是否是代码数据混合的
+  // Whether this frag is a mix of code and data
   unsigned int mixd_frag : 1;
 
-  // 该frag是否是未知的，无法识别的
+  // Whether this frag is unknown or unidentifiable
   unsigned int unknown_frag : 1;
 
-  // 该frag类型是否为align
+  // Whether the type of this frag is align
   // fr_type = rs_align / rs_align_code
   unsigned int align_frag : 1;
 
-  // 该frag是否为只包含锚点符号，但size为0的frag
-  // 这种frag是不影响嵌入数据大小统计的，但是会影响嵌入数据的访问模式.
-  // 汇编代码中对嵌入数据的访问很有可能通过该锚点符号，而不是实际的数据
-  // 符号.
+  // Whether this frag only contains an anchor symbol with a size of 0.
+  // This kind of frag does not affect the size statistics of embedded data,
+  // but it affects the access pattern of the embedded data.
+  // In assembly code, accesses to embedded data are very likely made
+  // through this anchor symbol rather than the actual data symbol.
   // example: openssl-3.3.5 poly1305-x86_64.s
   /*
     leaq	.Lconst(%rip),%rcx
@@ -156,13 +157,13 @@ struct frag {
 
   // fiytosky, add
   struct frag_flags fr_flags;
-  symbolS *frag_symbol; /* 记录frag关联的symbol */
+  symbolS *frag_symbol; /* Records the symbol associated with the frag */
   symbolS *frag_anchor; /* anchor symbol */
   unsigned int frag_index;
 
-  bool frag_has_hardcode; /* frag中是否包含硬编码字节 */
-  bool frag_has_insn; /* frag中是否已写入指令 */
-  bool begin_bytes; /* 硬编码字节位于frag起始 */
+  bool frag_has_hardcode; /* Whether the frag contains hardcoded bytes */
+  bool frag_has_insn; /* Whether instructions have been written to the frag */
+  bool begin_bytes; /* Hardcoded bytes are located at the beginning of the frag */
   bool frag_has_checked;
   unsigned int hardcode_size;
 
@@ -223,4 +224,8 @@ bool frag_gtoffset_p (valueT, const fragS *, valueT, const fragS *, offsetT *);
 unsigned int get_frag_count (void);
 void clear_frag_count (void);
 
+// fiytosky, add
+/* handle anchor list*/
+void frag_add_anchor (fragS *, symbolS *);
+struct anchor_list * frag_find_anchor (const fragS *fragP, const symbolS *anchor);
 #endif /* FRAGS_H */
