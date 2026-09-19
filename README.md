@@ -6,70 +6,42 @@ AsmXoM is an enhanced compilation toolchain designed to enforce strict code–da
 
 ```bash
 |-- binutils-2.44   # Modified binutils source code.
-|-- env.sh			# Script for environment initialization.
-|-- gcc-wrapper		# Compiler plugins and linker scripts.
-|-- LICENSE		   
+|-- build.sh        # Script for local build.
+|-- docker          # Configure for docker build.
+|-- env.sh          # Script for environment initialization.
+|-- evaluation      # Script and project for artifact evaluation.
+|-- gcc-wrapper     # Compiler plugins and linker scripts.
+|-- LICENSE      
 |-- README.md      
-|-- script			# Scripts for automated testing.
-|-- xom	            # Dynamic link library implementing XOM using Intel MPK.
+|-- script          # Scripts for automated testing.
+|-- xom             # Dynamic link library implementing XOM using Intel MPK.
 ```
-
-### How to Use
 
 ### Prerequisites
 
 - An x86-64 CPU supporting Intel Memory Protection Keys (MPK)
 - A minimum of 20 GB of available disk space for building GCC and GNU Binutils
 
-#### Docker
+### How to build
 
-The default image builds the modified Binutils 2.44, downloads and verifies
-GCC 15.2.0, builds GCC, and builds the GCC plugin and XoM support binaries
-during `docker build`.  It is therefore the appropriate image to distribute:
+#### Docker build
+
+The default image builds the modified Binutils 2.44, downloads and verifies GCC 15.2.0, builds GCC, and builds the GCC plugin and XoM support binaries during `docker build`. 
 
 ```bash
 docker build --platform=linux/amd64 -t asmxom:15.2 .
 docker run --name asmxom -it asmxom:15.2
 ```
 
-Pass `--build-arg ASMXOM_JOBS=N` to `docker build` to change the default four
-parallel jobs used for the GCC build.
-
-The container starts in `/AsmXoM` with `env.sh` already sourced.  Use a named
-container and restart it with `docker start -ai asmxom` to retain generated
-workspace data.
-
-To reproduce the alternative workflow where the toolchain is compiled only
-when a container starts, build the `runtime-build` target.  Its first start
-requires network access, at least 20 GB of free Docker storage, and may take a
-long time:
+#### Local build
+Alternatively, you can execute the following scripts to compile the complete AsmXoM locally.
 
 ```bash
-docker build --platform=linux/amd64 --target runtime-build \
-    -t asmxom:runtime-build .
-docker run --name asmxom-runtime -it \
-    -e ASMXOM_JOBS=4 asmxom:runtime-build
+./build.sh
+source env.sh
 ```
 
-Export and import the ready-to-run image with:
-
-```bash
-docker save asmxom:15.2 | gzip > asmxom-15.2-linux-amd64.tar.gz
-gzip -dc asmxom-15.2-linux-amd64.tar.gz | docker load
-```
-
-#### Building AsmXoM Locally
-
-Compile binutils-2.44 and gcc-15.2.0 in your working directory (e.g., `Workplace`).
-
-```bash
-# 1. compile binutils-2.44 after downloading the source code
-../configure --prefix=/Workplace/binutils-2.44/build
-
-# 2. compile gcc-15.2.0 using bintuils-2.44
-wget https://ftp.gnu.org/pub/gnu/gcc/gcc-15.2.0/gcc-15.2.0.tar.gz
-../configure --prefix=/Workplace/gcc-15.2.0/build --enable-languages=c,c++ --with-as=/Workplace/binutils-2.44/build/bin/as --with-ld=/Workplace/binutils-2.44/build/bin/ld --disable-multilib --disable-nls
-```
+### How to use
 
 #### Using GAS
 
@@ -79,48 +51,14 @@ The modified `GAS` assembler provides two compilation flags to enable the custom
 - `--dsplit` separate embedded data into the read-only data section.   
 
 ```bash
-# 1. collect embedded data information
+# collect embedded data information
 /Workplace/binutils-2.44/build/bin/as --keep-locals --dcollect test.s -o test.o
 
-# 2. dump collected information
+# dump collected information
 python3 /Workplace/scripy/parse_xom_info.py test.o --section xomdata --log /tmp/dump.log
 
-# 3. separate embedded data
+# separate embedded data
 /Workplace/binutils-2.44/build/bin/as --keep-locals --dsplit test.s -o test.o
-```
-
-##### Output of dump.log
-
-```yaml
-...
---- [ Header ] ---
-Magic      : xom
-Name Size  : 22 bytes
-File Name  : crypto/bn/rsaz-avx2.s
-
-hardcoded_bytes_per_file  : 235  bytes
-bytes_frag_num  : 15
-direct_code_num  : 2
-direct_data_num  : 2
-fall_through_num : 6
---- [ Metadata Entries ] ---
-[Entry #0]
-  Frag Address : 0x0000000000529d80
-  Frag Index   : 44
-  Frag Size    : 32 (0x20) bytes
-  Frag Flags   : 0x00000000
-  Symbol Size  : 11 bytes
-  Symbol Name  : .Land_mask
-----------------------------------------
---- [ Metadata Entries ] ---
-[Entry #1]
-  Frag Address : 0x0000000000529da0
-  Frag Index   : 45
-  Frag Size    : 32 (0x20) bytes
-  Frag Flags   : 0x00000000
-  Symbol Size  : 16 bytes
-  Symbol Name  : .Lscatter_permd
-...
 ```
 
 #### Using GCC
@@ -134,102 +72,188 @@ You can pass custom flags to the assembler invoked by GCC using the `-Wa` option
 
 ### How to Evaluation
 
-We provide the `script/run.sh` script to allow users to easily test AsmXoM's functionality and its XOM compatibility. The usage of the `run.sh` script is as follows:   
-
-```
-Usage: run.sh -p <target> [-j <jobs>] <-c | -b | -f | -s>
-
-Options:
-  -p <target>  Project name.
-  -j <jobs>    Number of parallel compilation jobs (default: 128).
-  -c           Run in precompile mode. (Collect assembly and inline asm statistics)
-  -b           Run in build mode. (Collect embedded data statistics)
-  -f           Function correctness test.
-  -s           Security test.
-  -h           Show this help message and exit.
-
-Exactly one of -c, -b, -f, and -s must be specified.
-```
-
-Before executing `run.sh`, please run `source env.sh` to initialize the environment.   
-
-
-
-Below, we use OpenSSL as an example to illustrate the testing process. 
-
-#### Functional Evaluation
-
-Execute the following command:
+We provide the following scripts in directory `evaluation` to allow users to easily test AsmXoM's functionality and its XoM compatibility. These scripts use OpenSSL as the project to illustrate the testing process. 
 
 ```bash
-./run.sh -p openssl -f -j32
+|-- function_evaluation.sh        # Embedded data identification and analysis
+|-- correctness_evaluation.sh     # Functional correctness testing after code-data separation
+|-- compatibility_evaluation.sh   # XoM compatibility testing after code-data separation
+|-- disclosure_evaluation.sh      # Code leakage prevention testing in XoM environment
 ```
 
-The main steps performed by this command are as follows:   
+#### Embedded Data Identification
+
+This evaluation compiles OpenSSL using AsmXoM to achieve code-data separation and collect statistics on the identified embedded data.  
+
+
+Execute the following commands:
 
 ```bash
-# 1. download OpenSSL from https://openssl-library.org/source/
-wget https://github.com/openssl/openssl/releases/download/openssl-3.3.5/openssl-3.3.5.tar.gz
-tar -xf openssl-3.3.5.tar.gz
-
-# 2. Configure
-export CUSTOM_CC=/your_path/gcc
-export EXTRA_CFLAGS="-Wa,--keep-locals -Wa,--dsplit"
-export EXTRA_LDFLAGS="-Wl,-T,/Workplace/gcc-wrapper/ldscript.ld"
-
-# 3. Compile OpenSSL using AsmXoM
-cd openssl-3.3.5
-mkdir build && cd build
-../Configure no-shared --prefix="$PWD" CC="$CUSTOM_CC" CFLAGS="-O3 -fPIC $EXTRA_CFLAGS" LDFLAGS="$EXTRA_LDFLAGS"
-
-make -j($nproc)
-make install # openssl will be installed in ./build/apps
-
-# 4. Test (Proxies cause certain network tests to fail.)
-env -u http_proxy -u HTTP_PROXY -u https_proxy -u HTTPS_PROXY -u all_proxy -u ALL_PROXY \
-make test
+cd evaluation
+./function_evaluation.sh
 ```
 
 Expected output:
 ```bash
-# expected output
+========================================
+[Step 1] Check openssl-3.3.5 ...
+========================================
+[Success] [+] Find openssl-3.3.5 in /root/AsmXoM/evaluation
+========================================
+[Step 2] Configuring openssl-3.3.5 ...
+========================================
+[Success] [+] Configuration Successful!
+========================================
+[Step 3] Compiling openssl-3.3.5 with -j128 ...
+========================================
+[Success] [+] Compilation Successful!
+========================================
+[Step 4] Analysis the embedded data in openssl-3.3.5 ...
+========================================
+...
++--------------------------------+-----------------------------------+
+| METRIC CATEGORY                | VALUE                             |
++--------------------------------+-----------------------------------+
+| Total Embedded Data Count      | 123                               |
+| Total Embedded Data Size       | 176603                            |
+| Actual Text Size               | 5262113                           |
++--------------------------------+-----------------------------------+
+| Embedded / Actual Size Ratio   | 3.36%                             |
+| Average Embedded Data Size     | 1435.7967479674796                |
++--------------------------------+-----------------------------------+
+| Total Hardcode Size            | 189225                            |
+| Total Hardcode Block           | 768                               |
++--------------------------------+-----------------------------------+
+```
+
+#### Functional Correctness Testing
+
+This evaluation compiles OpenSSL using AsmXoM to achieve code-data separation, followed by running the standard OpenSSL tests (i.e., `make test`).   
+
+- Expected Result: All tests passed.   
+
+Execute the following commands:
+
+```bash
+cd evaluation
+./correctness_evaluation.sh
+```
+
+Expected output:
+```bash
+========================================
+[Step 1] Check openssl-3.3.5 ...
+========================================
+[Success] [+] Find openssl-3.3.5 in /root/AsmXoM/evaluation
+========================================
+[Step 2] Configuring openssl-3.3.5 ...
+========================================
+[Success] [+] Configuration Successful!
+========================================
+[Step 3] Compiling openssl-3.3.5 with -j128 ...
+========================================
+[Success] [+] Compilation Successful!
+========================================
+[Step 4] Running standard tests (openssl-3.3.5) ...
+========================================
+...
 All tests successful.
-Files=316, Tests=3244, 417 wallclock secs ( 7.00 usr  0.73 sys + 328.01 cusr 90.40 csys = 426.14 CPU)
+Files=316, Tests=3244, 478 wallclock secs ( 6.25 usr  0.76 sys + 391.64 cusr 86.09 csys = 484.74 CPU)
 Result: PASS
 ```
 
+#### XoM Compatibility Testing
 
+This evaluation enforces XoM protection on the program via Intel MPK, and compiles and executes OpenSSL using AsmXoM and the baseline GCC, respectively.  
 
-#### XoM compatibility Evaluation
+- Under XoM protection, OpenSSL compiled using AsmXoM executes normally.
+- Under XoM protection, OpenSSL compiled using the baseline GCC crashes with a `segmentation fault`.   
 
-We enforce XoM protection on the program via Intel MPK, and compile and execute OpenSSL using AsmXoM and the baseline GCC, respectively.  
-
-Execute the following command:
-
-```bash
-./run.sh -p openssl -s -j32
-```
-
-##### Compilation and execution via AsmXoM
+Execute the following commands:
 
 ```bash
-# 1. using sha1 as an example
-MPK_XOM_SCOPE=main MPK_XOM_VERBOSE=0 /Workplace/xom/xom_run ./openssl speed sha1
-
-# expected output
-compiler: /Workplace/gcc-15.2.0/build/bin/gcc -fPIC -pthread -m64 -Wa,--noexecstack -O3 -Wa,--keep-locals -Wa,--dsplit -fPIC -DOPENSSL_USE_NODELETE -DL_ENDIAN -DOPENSSL_PIC -DOPENSSL_BUILDING_OPENSSL -DNDEBUG
-CPUINFO: OPENSSL_ia32cap=0x7ffef3ffffebffff:0x40417f5ef3bfb7ef
-The 'numbers' are in 1000s of bytes per second processed.
-type             16 bytes     64 bytes    256 bytes   1024 bytes   8192 bytes  16384 bytes
-sha1             93599.05k   302036.20k   736971.95k  1155202.05k  1393827.84k  1425184.09k
+cd evaluation
+./compatibility_evaluation.sh
 ```
 
-##### Compilation and execution via baseline GCC   
+Expected output:
 
 ```bash
-# 1. using sha1 as an example
-MPK_XOM_SCOPE=main MPK_XOM_VERBOSE=0 /Workplace/xom/xom_run ./openssl speed sha1
-
-# expected output (The coredump log records the embedded data access location.)
-Doing sha1 ops for 3s on 16 size blocks: Segmentation fault (core dumped)
+========================================
+[Step 1] Prepare xom environment ...
+========================================
+[Success] [+] Compiled /root/AsmXoM/xom/libmpk_xom.so
+========================================
+[Step 2] Check openssl-3.3.5 ...
+========================================
+[Success] [+] Find openssl-3.3.5 in /root/AsmXoM/evaluation
+========================================
+[Step 3] Build openssl-3.3.5 by native GCC ...
+========================================
+[Success] [+] Compilation Successful!
+========================================
+[Step 4] Run openssl-3.3.5 in XoM environment compiled by native GCC ...
+========================================
+Doing sha1 ops for 3s on 16 size blocks: ./compatibility_evaluation.sh: line 120: 3548223 Segmentation fault  (core dumped) $XOM_RUN ./apps/openssl speed sha1
+========================================
+[Step 5] Build openssl-3.3.5 by AsmXoM ...
+========================================
+[Success] [+] Compilation Successful!
+========================================
+[Step 6] Run openssl-3.3.5 in XoM environment compiled by AsmXoM ...
+========================================
+Doing sha1 ops for 3s on 16 size blocks: 8435293 sha1 ops in 3.00s
+Doing sha1 ops for 3s on 64 size blocks: 7541216 sha1 ops in 3.00s
+...
 ```
+
+#### Code Leakage Prevention Testing
+
+This evaluation emulates an attacker with an arbitrary read primitive by modifying the entry functions of OpenSSL to access their own executable code pages. 
+
+- Under XoM protection, reading the code segment results in a `SEGV_PKUERR`.
+- Without XoM protection, the code segment can be read normally.   
+
+Execute the following commands:
+
+```bash
+cd evaluation
+./disclosure_evaluation.sh
+```
+
+Expected output:
+
+```bash
+========================================
+[Step 1] Simulate attack payload ...
+========================================
+[Success] [+] Compiled /root/AsmXoM/xom/libleak_probe.so
+========================================
+[Step 2] Build openssl-3.3.5 ...
+========================================
+[Success] [+] Compilation Successful!
+========================================
+[Step 3] Run openssl-3.3.5 in XoM environment ...
+========================================
+[mpk-xom] pkey=1 object=<main> exec=[0x404000, 0x909000) prot=r-x
+[mpk-xom] data read/write access to selected executable pages is disabled; instruction fetch remains enabled
+[leak-probe] attempting to read code
+[leak-probe] executable segment : [0x404000, 0x908f51)
+[leak-probe] test address       : 0x404010
+
+[leak-probe] PASS
+[leak-probe] attempted in-process code disclosure
+[leak-probe] signal  : SIGSEGV
+[leak-probe] si_code : SEGV_PKUERR
+[leak-probe] result  : executable page cannot be read as data
+========================================
+[Step 4] Run openssl-3.3.5 in non-XoM environment ...
+========================================
+[leak-probe] attempting to read code
+[leak-probe] executable segment : [0x404000, 0x908f51)
+[leak-probe] test address       : 0x404010
+[leak-probe] READ SUCCEEDED
+[leak-probe] leaked bytes       : 85 c0 74 02 ff d0 e8 30 95 40 00 48 83 c4 08 c3 
+...
+```
+

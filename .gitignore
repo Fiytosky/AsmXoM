@@ -3,3 +3,4 @@
 /binutils-2.44/build
 /tests
 /evaluation/openssl-3.3.5
+/script/run.sh

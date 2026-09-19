@@ -1,5 +1,3 @@
-# syntax=docker/dockerfile:1
-
 FROM ubuntu:22.04 AS asmxom-base
 
 ARG DEBIAN_FRONTEND=noninteractive
@@ -88,13 +86,12 @@ RUN chmod 0755 \
         /usr/local/bin/asmxom-build \
         /usr/local/bin/asmxom-entrypoint \
         /AsmXoM/env.sh \
-        /AsmXoM/evaluation/*.sh \
         /AsmXoM/gcc-wrapper/gcc \
         /AsmXoM/gcc-wrapper/g++ \
-        /AsmXoM/script/*.sh \
-        /AsmXoM/script/*.py \
-        /AsmXoM/xom/*.sh \
-        /AsmXoM/xom/xom_run
+        /AsmXoM/xom/xom_run \
+    && find /AsmXoM/evaluation /AsmXoM/script /AsmXoM/xom \
+        -type f \( -name '*.sh' -o -name '*.py' \) \
+        -exec chmod 0755 {} +
 
 ENTRYPOINT ["/usr/local/bin/asmxom-entrypoint"]
 CMD ["bash"]
